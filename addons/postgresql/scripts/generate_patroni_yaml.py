@@ -49,10 +49,11 @@ def main(filename):
     postgresql['custom_conf'] = '/home/postgres/conf/postgresql.conf'
 
     # add pg_hba.conf
+    pg_hba_lines = []
     with open('/home/postgres/conf/pg_hba.conf', 'r') as f:
-        lines = read_file_lines(f)
-        if lines:
-            postgresql['pg_hba'] = lines
+        pg_hba_lines = read_file_lines(f)
+        if pg_hba_lines:
+            postgresql['pg_hba'] = pg_hba_lines
     if restore_dir and os.path.isfile(
             os.path.join(restore_dir, 'kb_restore.signal')):
         if 'postgresql' not in local_config:
@@ -79,6 +80,8 @@ def main(filename):
             local_config['bootstrap']['dcs'].update(yaml.safe_load(f))
     else:
         print('patroni.yaml not found')
+    if pg_hba_lines:
+        local_config['bootstrap']['dcs'].setdefault('postgresql', {})['pg_hba'] = pg_hba_lines
     synchronous_mode = os.environ.get('SYNCHRONOUS_MODE')
     if synchronous_mode:
         local_config['bootstrap']['dcs']['synchronous_mode'] = synchronous_mode
